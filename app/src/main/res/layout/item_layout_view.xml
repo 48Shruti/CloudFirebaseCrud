@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvtitle"
+        android:text="title"
+        android:textSize="@dimen/size_25sp"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvdescp"
+        android:text="description"
+        android:textSize="@dimen/size_25sp"
+       app:layout_constraintTop_toBottomOf="@id/tvtitle"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnupate"
+        app:layout_constraintTop_toBottomOf="@id/tvdescp"
+        android:text="update"
+        app:layout_constraintStart_toStartOf="parent"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btndelete"
+        app:layout_constraintTop_toBottomOf="@id/btnupate"
+        app:layout_constraintStart_toStartOf="parent"
+        android:text="delete"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
