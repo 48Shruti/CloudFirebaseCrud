@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity(),NotesInterface {
         adapter = RecyclerAdapter(item, this)
         binding.recyclerView.adapter = adapter
         binding.mainActivity = this
+        getCollection()
     }
     fun fab(){
         val dialog = Dialog(this)
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity(),NotesInterface {
                    dialogBinding.etdescription.error = "Enter description"
             }
             else {
-                firestore.collection("Users")
+                firestore.collection("users")
                     .add(
                         NotesDataClass(
                             title = dialogBinding.ettitle.text.toString(),
@@ -53,7 +54,6 @@ class MainActivity : AppCompatActivity(),NotesInterface {
                     )
                     .addOnSuccessListener {
                         Toast.makeText(this, "data add successfully", Toast.LENGTH_SHORT).show()
-                        System.out.println("its working ")
                         getCollection()
                     }
                     .addOnCanceledListener {
@@ -73,8 +73,8 @@ class MainActivity : AppCompatActivity(),NotesInterface {
 
     }
     private fun getCollection(){
-        item.clear()
-        firestore.collection("Users").get()
+         item.clear()
+        firestore.collection("users").get()
             .addOnSuccessListener {
                 for(items in it.documents){
                     var firestore = items.toObject(NotesDataClass::class.java)?: NotesDataClass()
@@ -90,6 +90,8 @@ class MainActivity : AppCompatActivity(),NotesInterface {
         var dialogBinding = DialogCustomBinding.inflate(layoutInflater)
         dialog.setContentView(dialogBinding.root)
         dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialogBinding.ettitle.setText(notesDataClass.title)
+        dialogBinding.etdescription.setText(notesDataClass.description)
         dialogBinding.btnadd.setOnClickListener {
             if(dialogBinding.ettitle.text.isNullOrEmpty()){
                 dialogBinding.ettitle.error = "Enter title"
@@ -98,8 +100,7 @@ class MainActivity : AppCompatActivity(),NotesInterface {
                 dialogBinding.etdescription.error = "Enter description"
             }
             else {
-
-                    var updateNotes=
+                    var updateNotes =
                         NotesDataClass(
                             title = dialogBinding.ettitle.text.toString(),
                             description = dialogBinding.etdescription.text.toString()

@@ -9,9 +9,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Recycler
 
 class RecyclerAdapter(var item : ArrayList<NotesDataClass>,var notesInterface: NotesInterface) :RecyclerView.Adapter<RecyclerAdapter.ViewHolder>() {
-    class ViewHolder(var view : View) : RecyclerView.ViewHolder(view){
-        var title = view.findViewById<TextView>(R.id.ettitle)
-        var descip= view.findViewById<TextView>(R.id.etdescription)
+    class ViewHolder(val view : View) : RecyclerView.ViewHolder(view){
+        var title = view.findViewById<TextView>(R.id.tvtitle)
+        var descip= view.findViewById<TextView>(R.id.tvdescp)
         var updateNotes = view.findViewById<Button>(R.id.btnupate)
         var deleteNotes = view.findViewById<Button>(R.id.btndelete)
     }
