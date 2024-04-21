@@ -9,77 +9,78 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.shruti.cloudfirebasecrud.databinding.ActivityMainBinding
 import com.shruti.cloudfirebasecrud.databinding.DialogCustomBinding
 
 class MainActivity : AppCompatActivity(),NotesInterface {
-    val binding : ActivityMainBinding by lazy{
-       ActivityMainBinding.inflate(layoutInflater)
-    }
+    lateinit var  binding: ActivityMainBinding
+
+
     var item = arrayListOf<NotesDataClass>()
     lateinit var adapter: RecyclerAdapter
     lateinit var linearLayout: LinearLayoutManager
-    val firestore = Firebase.firestore
+    val firestore = FirebaseFirestore.getInstance()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding =  ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.mainActivity = this
         linearLayout = LinearLayoutManager(this)
         binding.recyclerView.layoutManager = linearLayout
         adapter = RecyclerAdapter(item, this)
         binding.recyclerView.adapter = adapter
-        binding.mainActivity = this
         getCollection()
     }
-    fun fab(){
+
+    fun fab() {
         val dialog = Dialog(this)
         var dialogBinding = DialogCustomBinding.inflate(layoutInflater)
         dialog.setContentView(dialogBinding.root)
-        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
         dialogBinding.btnadd.setOnClickListener {
-            if(dialogBinding.ettitle.text.isNullOrEmpty()){
+            if (dialogBinding.ettitle.text.isNullOrEmpty()) {
                 dialogBinding.ettitle.error = "Enter title"
-            }
-            else if(dialogBinding.etdescription.text.isNullOrEmpty()){
-                   dialogBinding.etdescription.error = "Enter description"
-            }
-            else {
-                firestore.collection("users")
-                    .add(
-                        NotesDataClass(
-                            title = dialogBinding.ettitle.text.toString(),
-                            description = dialogBinding.etdescription.text.toString()
-                        )
+            } else if (dialogBinding.etdescription.text.isNullOrEmpty()) {
+                dialogBinding.etdescription.error = "Enter description"
+            } else {
+                firestore.collection("users").add(
+                    NotesDataClass(
+                        title = dialogBinding.ettitle.text.toString(),
+                        description = dialogBinding.etdescription.text.toString()
                     )
+                )
                     .addOnSuccessListener {
                         Toast.makeText(this, "data add successfully", Toast.LENGTH_SHORT).show()
                         getCollection()
                     }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "data add failure", Toast.LENGTH_SHORT).show()
+                    }
                     .addOnCanceledListener {
                         Toast.makeText(this, "data add cancel", Toast.LENGTH_SHORT).show()
-                        System.out.println("its canceled ")
                     }
-                    .addOnFailureListener { e->
-                        Toast.makeText(this, "data add failure", Toast.LENGTH_SHORT).show()
-                        System.out.println("its failure ")
-                    }
-            }
                 adapter.notifyDataSetChanged()
                 dialog.dismiss()
-
+            }
         }
         dialog.show()
 
     }
+
     private fun getCollection(){
          item.clear()
         firestore.collection("users").get()
             .addOnSuccessListener {
                 for(items in it.documents){
-                    var firestore = items.toObject(NotesDataClass::class.java)?: NotesDataClass()
-                    firestore.id =  items.id
-                    item.add(firestore)
+                    var firestoreClass = items.toObject(NotesDataClass::class.java)?: NotesDataClass()
+                    firestoreClass.id =  items.id
+                    item.add(firestoreClass)
                 }
             }
         adapter.notifyDataSetChanged()
@@ -100,27 +101,26 @@ class MainActivity : AppCompatActivity(),NotesInterface {
                 dialogBinding.etdescription.error = "Enter description"
             }
             else {
-                    var updateNotes =
-                        NotesDataClass(
-                            title = dialogBinding.ettitle.text.toString(),
-                            description = dialogBinding.etdescription.text.toString()
-                        )
-                          firestore.collection("users").document(notesDataClass.id ?:"")
-                              .set(updateNotes)
+                var updateNotes =
+                    NotesDataClass(
+                        title = dialogBinding.ettitle.text.toString(),
+                        description = dialogBinding.etdescription.text.toString()
+                    )
+                firestore.collection("users").document(notesDataClass.id ?: "")
+                    .set(updateNotes)
                     .addOnSuccessListener {
-                         Toast.makeText(this, "data add successfully", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "data add successfully", Toast.LENGTH_SHORT).show()
                         getCollection()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this, "data add failure", Toast.LENGTH_SHORT).show()
                     }
                     .addOnCanceledListener {
                         Toast.makeText(this, "data add cancel", Toast.LENGTH_SHORT).show()
                     }
-                    .addOnFailureListener { e->
-                        Toast.makeText(this, "data add failure", Toast.LENGTH_SHORT).show()
-                    }
+                adapter.notifyDataSetChanged()
+                dialog.dismiss()
             }
-            adapter.notifyDataSetChanged()
-            dialog.dismiss()
-
         }
         dialog.show()
     }
@@ -132,11 +132,11 @@ class MainActivity : AppCompatActivity(),NotesInterface {
                 Toast.makeText(this,"Data delete",Toast.LENGTH_SHORT).show()
                 getCollection()
             }
-            .addOnCanceledListener {
-                Toast.makeText(this,"Data Cancel",Toast.LENGTH_SHORT).show()
-            }
             .addOnFailureListener{
                 Toast.makeText(this,"Data fail",Toast.LENGTH_SHORT).show()
+            }
+            .addOnCanceledListener {
+                Toast.makeText(this,"Data Cancel",Toast.LENGTH_SHORT).show()
             }
         adapter.notifyDataSetChanged()
     }
