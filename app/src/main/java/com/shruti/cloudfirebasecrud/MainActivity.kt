@@ -9,14 +9,16 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
 import com.shruti.cloudfirebasecrud.databinding.ActivityMainBinding
 import com.shruti.cloudfirebasecrud.databinding.DialogCustomBinding
 
 class MainActivity : AppCompatActivity(),NotesInterface {
-    lateinit var  binding: ActivityMainBinding
+    lateinit var binding: ActivityMainBinding
 
 
     var item = arrayListOf<NotesDataClass>()
@@ -25,7 +27,7 @@ class MainActivity : AppCompatActivity(),NotesInterface {
     val firestore = FirebaseFirestore.getInstance()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding =  ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.mainActivity = this
         linearLayout = LinearLayoutManager(this)
@@ -73,17 +75,20 @@ class MainActivity : AppCompatActivity(),NotesInterface {
 
     }
 
-    private fun getCollection(){
-         item.clear()
-        firestore.collection("users").get()
-            .addOnSuccessListener {
-                for(items in it.documents){
-                    var firestoreClass = items.toObject(NotesDataClass::class.java)?: NotesDataClass()
-                    firestoreClass.id =  items.id
-                    item.add(firestoreClass)
-                }
+    private fun getCollection() {
+        item.clear()
+        firestore.collection("users").addSnapshotListener { snapshot, e ->
+            if (e != null) {
+                Log.w(TAG, "Listen failed", e)
+                return@addSnapshotListener
             }
-        adapter.notifyDataSetChanged()
+            for (dc in snapshot!!) {
+                val firestoreClass = dc.toObject(NotesDataClass::class.java)
+                firestoreClass.id = dc.id
+                item.add(firestoreClass)
+            }
+            adapter.notifyDataSetChanged()
+        }
     }
 
     override fun update(notesDataClass: NotesDataClass, position: Int) {
@@ -126,17 +131,18 @@ class MainActivity : AppCompatActivity(),NotesInterface {
     }
 
     override fun delete(notesDataClass: NotesDataClass, position: Int) {
+        item.clear()
         firestore.collection("users").document(notesDataClass.id?:"")
             .delete()
             .addOnSuccessListener {
                 Toast.makeText(this,"Data delete",Toast.LENGTH_SHORT).show()
                 getCollection()
             }
-            .addOnFailureListener{
-                Toast.makeText(this,"Data fail",Toast.LENGTH_SHORT).show()
-            }
             .addOnCanceledListener {
                 Toast.makeText(this,"Data Cancel",Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener{
+                Toast.makeText(this,"Data fail",Toast.LENGTH_SHORT).show()
             }
         adapter.notifyDataSetChanged()
     }
